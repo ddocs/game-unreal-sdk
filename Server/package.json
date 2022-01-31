@@ -1,0 +1,20 @@
+{
+  "name": "mirage-unreal-sdk-server",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "start": "node ./bin/www"
+  },
+  "dependencies": {
+    "@walletconnect/client": "^1.7.1",
+    "@walletconnect/qrcode-modal": "^1.7.1",
+    "cookie-parser": "~1.4.4",
+    "debug": "~2.6.9",
+    "ethers": "^5.5.4",
+    "express": "~4.16.1",
+    "http-errors": "~1.6.3",
+    "jade": "~1.11.0",
+    "morgan": "~1.9.1",
+    "tslib": "^2.3.1"
+  }
+}

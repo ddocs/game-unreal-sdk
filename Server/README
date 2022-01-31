@@ -1,0 +1,27 @@
+# Mirage Unreal SDK Server
+This server integrates Mirage Unreal SDK to blockchain and WalletConnect.
+
+## Install
+
+    npm install
+    npm run start
+
+## Endpoints
+
+|  |  |  |
+|--|--|--|
+|GET|**/ping**|Check server|
+|POST|**/abi**|Send ABI to server|
+|GET|**/abi/:hash**|Get ABI with hash|
+|POST|**/connect**|Retuns uri for connect WalletConnect bridge|
+|POST|**/connection**|Check if connection session is valid|
+|POST|**/get/data**|Query data from blockchain|
+|POST|**/get/transaction**|Get given transaction id from blockchain|
+|POST|**/get/changes**|Get events from blockchain|
+|POST|**/call/method**|Call method from ABI|
+|POST|**/send/transaction**|Send prepared transaction to WalletConnect|
+
+## TODO
+ - [ ] Keep user session for future requests
+ - [ ] Store sessions at redis
+ - [ ] Check clients
