@@ -60,9 +60,9 @@ router.post('/connect', async function(req, res, next) {
     }
 
     client.create_connection(last_session).then((client_uri) => {
-      let session_id = client_uri.split("?")[0];
+      let session_id = client.uri.split("?")[0];
       device_list[device_id] = client;
-      res.json({ result: true, uri: client_uri, session: session_id });
+      res.json({ result: true, uri: client.uri, session: session_id });
     }, (err) => {
       console.log(err);
       res.json({ result: false });
@@ -92,7 +92,7 @@ router.post('/get/transaction', function(req, res, next) {
   const tx_id = req.body.tx_id;
   const client = device_list[device_id];
 
-  if(client && !client.connected) {
+  if(client && client.connected) {
 
     let result = client.get_transaction(tx_id);
 
@@ -103,6 +103,40 @@ router.post('/get/transaction', function(req, res, next) {
         res.json({ result: true, data: data });
       }
       
+    }, (err) => {
+      res.json({ result: false });
+    });
+  } else {
+    res.json({ result: false });
+  }
+});
+
+router.post('/sign/message', function(req, res, next) {
+  // Create ticket for request and set status as waiting
+  const ticket = uuid4.v4();
+  redis_client.set('ticket_' + ticket, {status: 'waiting', code: 0 }, function (err, res) { });
+
+  const device_id = req.body.device_id;
+  const message = req.body.message;
+
+  const client = device_list[device_id];
+
+  if(client && client.connected) {
+
+    let result = client.sign_message(message);
+
+    result.then((message_hash) => {
+      client.connector.signMessage(message_hash).then((data) => {
+        data.status = 'success';
+        data.code = 1;
+        redis_client.set('ticket_' + ticket, data, function (err, res) { });
+      }).catch((err) => {
+        let data = {};
+        data.status = 'rejected';
+        data.code = -1;
+        redis_client.set('ticket_' + ticket, data, function (err, res) { });
+      });
+      res.json({ result: true, ticket: ticket });
     }, (err) => {
       res.json({ result: false });
     });
@@ -123,7 +157,7 @@ router.post('/call/method', function(req, res, next) {
 
   if(client && client.connected) {
 
-    let result = client.call_method(method, abi_hash, contract_address, args);
+    let result = client.call_method(method, abi_hash, contract_address, args.split(','));
 
     result.then((data) => {
       res.json({ result: true, data: data.toString() });
@@ -157,7 +191,6 @@ router.post('/send/transaction', function(req, res, next) {
     raw_transaction.then((tx) => {
       tx.from = client.active_account;
       client.connector.sendTransaction(tx).then((data) => {
-        console.log(data);
         data.status = 'success';
         data.code = 1;
         redis_client.set('ticket_' + ticket, data, function (err, res) { });

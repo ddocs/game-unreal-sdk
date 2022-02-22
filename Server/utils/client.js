@@ -27,9 +27,11 @@ class MirageClient {
           // if session, restore it
           var connector = new WalletConnect({
             bridge: "",
+            qrcodeModal: QRCodeModal,
             clientMeta: { },
             session: session
           });
+          connector.connect();
           // var connector = new WalletConnect(session);
         } else {
           // Create a new connector
@@ -85,7 +87,7 @@ class MirageClient {
           this.connector = null;
           this.chainId = null;
           this.connected = false;
-          this.redis_client.delete('session_' + device_id);
+          this.redis_client.delete('session_' + this.device_id);
           // Delete walletConnector
         });
       
@@ -119,12 +121,23 @@ class MirageClient {
         }
     }
 
+    sign_message(message) {
+      let message_hash = ethers.utils.keccak256(
+        ethers.utils.toUtf8Bytes(message)
+      );
+      return message_hash;
+    }
+
     call_method(method_name, abi_hash, contract_address, args) {
       const abi = abi_list[abi_hash];
       const contract = new ethers.Contract(contract_address, abi, this._provider);
 
       const _call = contract[method_name];
-      return _call.apply(args);
+      if(args.length == 0 || args[0] == '') {
+        return _call.apply(null);
+      } else {
+          return _call.apply(null, args);
+      }
     }
 
     prepare_transaction(method_name, abi_hash, contract_address, args) {
@@ -132,7 +145,11 @@ class MirageClient {
       const contract = new ethers.Contract(contract_address, abi);
 
       const _call = contract.populateTransaction[method_name];
-      return _call.apply(null, args);
+      if(args.length == 0 || args[0] == '') {
+        return _call.apply(null);
+      } else {
+        return _call.apply(null, args);
+      }
     }
 
     get_transaction(tx_id) {
