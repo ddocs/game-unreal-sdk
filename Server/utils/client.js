@@ -121,11 +121,19 @@ class MirageClient {
         }
     }
 
-    sign_message(message) {
+    get_message_hash(message) {
       let message_hash = ethers.utils.keccak256(
         ethers.utils.toUtf8Bytes(message)
       );
       return message_hash;
+    }
+
+    verify_message(message, signature) {
+      try {
+        return ethers.utils.verifyMessage(message, signature);
+      } catch (error) {
+        return false;
+      }
     }
 
     call_method(method_name, abi_hash, contract_address, args) {

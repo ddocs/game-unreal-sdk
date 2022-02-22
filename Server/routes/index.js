@@ -123,27 +123,42 @@ router.post('/sign/message', function(req, res, next) {
 
   if(client && client.connected) {
 
-    let result = client.sign_message(message);
+    let message_hash = client.get_message_hash(message);
 
-    result.then((message_hash) => {
-      client.connector.signMessage(message_hash).then((data) => {
-        data.status = 'success';
-        data.code = 1;
-        redis_client.set('ticket_' + ticket, data, function (err, res) { });
-      }).catch((err) => {
-        let data = {};
-        data.status = 'rejected';
-        data.code = -1;
-        redis_client.set('ticket_' + ticket, data, function (err, res) { });
-      });
-      res.json({ result: true, ticket: ticket });
-    }, (err) => {
-      res.json({ result: false });
+    client.connector.signMessage(message_hash).then((data) => {
+      data.status = 'success';
+      data.code = 1;
+      redis_client.set('ticket_' + ticket, data, function (err, res) { });
+    }).catch((err) => {
+      let data = {};
+      data.status = 'rejected';
+      data.code = -1;
+      redis_client.set('ticket_' + ticket, data, function (err, res) { });
     });
+    res.json({ result: true, ticket: ticket });
   } else {
     res.json({ result: false });
   }
 });
+
+
+router.post('/verify/message', function(req, res, next) {
+  const device_id = req.body.device_id;
+  const message = req.body.message;
+  const signature = req.body.signature;
+
+  const client = device_list[device_id];
+
+  if(client && client.connected) {
+    let message_hash = client.get_message_hash(message);
+    let address = client.verify_message(message_hash, signature);
+    
+    res.json({ result: true, address: address });
+  } else {
+    res.json({ result: false });
+  }
+});
+
 
 router.post('/call/method', function(req, res, next) {
 
