@@ -18,6 +18,8 @@ This server integrates Mirage Unreal SDK to blockchain and WalletConnect.
 |POST|**/get/data**|Query data from blockchain|
 |POST|**/get/transaction**|Get given transaction id from blockchain|
 |POST|**/get/changes**|Get events from blockchain|
+|POST|**/sign/message**|Send Sing Message function|
+|POST|**/verify/message**|Call Verify Message function|
 |POST|**/call/method**|Call method from ABI|
 |POST|**/send/transaction**|Send prepared transaction to WalletConnect|
 
